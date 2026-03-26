@@ -1,20 +1,71 @@
 'use client'
 
 import { Navigation } from '@/components/navigation'
-import { FileText, Sparkles, Settings, Download, Search, Upload, CheckCircle, ArrowLeft } from 'lucide-react'
+import { FileText, Sparkles, Download, Upload, CheckCircle, ArrowLeft, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
 export default function QuestionPapersPage() {
   const [generating, setGenerating] = useState(false)
-  const [generated, setGenerated] = useState(false)
+  const [generatedData, setGeneratedData] = useState<any>(null)
+  
+  const [file, setFile] = useState<File | null>(null)
+  const [topic, setTopic] = useState('')
+  const [difficulty, setDifficulty] = useState('Medium')
+  const [type, setType] = useState('MCQ (1 Mark)')
 
-  const handleGenerate = () => {
+  const handleFileChange = (e: any) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+    }
+  }
+
+  const handleGenerate = async () => {
     setGenerating(true)
-    setTimeout(() => {
-      setGenerating(false)
-      setGenerated(true)
-    }, 2500)
+    setGeneratedData(null)
+    
+    let uploadedFilePath = null;
+
+    try {
+      // 1. Upload Agent Call
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.success) {
+           uploadedFilePath = uploadData.filepath;
+        }
+      }
+
+      // 2. Question Generator API Call
+      const genRes = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic,
+          difficulty,
+          questionType: type,
+          filepath: uploadedFilePath
+        })
+      });
+
+      const genData = await genRes.json();
+      if (genData.success && genData.data) {
+         setGeneratedData(genData.data);
+      } else {
+         console.error("Gen Error:", genData.error);
+         alert("Generator Error: " + genData.error);
+      }
+    } catch (err) {
+       console.error(err);
+       alert("Network connection failed.");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   return (
@@ -28,7 +79,7 @@ export default function QuestionPapersPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Question Papers</h1>
-            <p className="text-gray-600 mt-2">Auto-generate exams and quizzes from your approved Knowledge Base or Textbooks.</p>
+            <p className="text-gray-600 mt-2">Auto-generate exams driven fully by Gemini AI parsing your uploaded content.</p>
           </div>
         </div>
 
@@ -36,51 +87,55 @@ export default function QuestionPapersPage() {
           {/* Main content - Generated Papers */}
           <div className="lg:col-span-2 space-y-6">
             
-            {generated && (
-              <div className="bg-white rounded-xl shadow-lg border border-indigo-200 p-8 mb-6 animate-pulse border-t-4 border-t-indigo-600">
+            {generatedData && generatedData.questions && (
+              <div className="bg-white rounded-xl shadow-lg border border-indigo-200 p-8 mb-6 border-t-4 border-t-indigo-600 transition-all duration-500 ease-in-out">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                    <Sparkles className="text-indigo-600 w-6 h-6 mr-2" /> Smart Generation Complete
+                    <CheckCircle className="text-green-600 w-6 h-6 mr-2" /> Question Paper Ready!
                   </h2>
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold flex items-center shadow shadow-green-200">
-                    <Download className="w-4 h-4 mr-2" /> Download PDF Exam
+                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold flex items-center shadow shadow-green-200 hover:bg-green-700">
+                    <Download className="w-4 h-4 mr-2" /> Download PDF
                   </button>
                 </div>
                 
                 <div className="space-y-6">
-                   <div className="p-4 bg-gray-50 border rounded-xl">
-                      <p className="font-bold text-gray-800">1. What is the powerhouse of the cell?</p>
-                      <div className="ml-4 mt-2 space-y-2 text-gray-600">
-                        <p>A) Nucleus</p>
-                        <p className="font-bold text-green-700">B) Mitochondria (Correct)</p>
-                        <p>C) Ribosome</p>
-                        <p>D) Cytoplasm</p>
-                      </div>
-                   </div>
-                   <div className="p-4 bg-gray-50 border rounded-xl">
-                      <p className="font-bold text-gray-800">2. Which process is used by plants to make food?</p>
-                      <div className="ml-4 mt-2 space-y-2 text-gray-600">
-                        <p className="font-bold text-green-700">A) Photosynthesis (Correct)</p>
-                        <p>B) Respiration</p>
-                        <p>C) Transpiration</p>
-                        <p>D) Digestion</p>
-                      </div>
-                   </div>
+                   {generatedData.questions.map((q: any, index: number) => (
+                     <div key={index} className="p-4 bg-gray-50 border rounded-xl">
+                        <div className="flex justify-between">
+                          <p className="font-bold text-gray-800">{index + 1}. {q.questionText}</p>
+                          <span className="text-sm font-semibold text-gray-500 bg-white px-2 py-1 border rounded">{q.marks} Marks</span>
+                        </div>
+                        {q.options && q.options.length > 0 && (
+                          <div className="ml-4 mt-3 space-y-2 text-gray-700 font-medium">
+                            {q.options.map((opt: string, optIndex: number) => (
+                               <p key={optIndex} className={q.correctAnswer === opt || q.correctAnswer === String.fromCharCode(65 + optIndex) ? "font-bold text-green-700 flex items-center" : ""}>
+                                  {String.fromCharCode(65 + optIndex)}) {opt}
+                                  {(q.correctAnswer === opt || q.correctAnswer === String.fromCharCode(65 + optIndex)) && <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 rounded-full hidden sm:inline-flex">Correct Answer</span>}
+                               </p>
+                            ))}
+                          </div>
+                        )}
+                        {!q.options && q.correctAnswer && (
+                           <div className="mt-3 bg-blue-50 border-l-4 border-blue-400 p-3 italic text-gray-700 text-sm">
+                             <strong className="not-italic text-blue-900">Expected Master Answer: </strong> {q.correctAnswer}
+                           </div>
+                        )}
+                     </div>
+                   ))}
                 </div>
               </div>
             )}
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Recent Papers</h2>
+                <h2 className="text-2xl font-bold text-gray-900">History Log</h2>
               </div>
               
               <div className="space-y-4">
                 {[
                   { title: 'Algebra Midterm Form A', subject: 'Mathematics', questions: 25, marks: 50, diff: 'Medium', date: 'Oct 15' },
-                  { title: 'WW2 Comprehensive Test', subject: 'History', questions: 30, marks: 100, diff: 'Hard', date: 'Oct 10' }
                 ].map((paper, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-indigo-200 hover:shadow-sm bg-gray-50 group">
+                  <div key={i} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl bg-gray-50 group opacity-50">
                     <div className="flex items-center space-x-4">
                       <div className="bg-indigo-100 p-3 rounded-lg text-indigo-600">
                         <FileText className="h-6 w-6" />
@@ -88,7 +143,7 @@ export default function QuestionPapersPage() {
                       <div>
                         <h3 className="font-bold text-gray-900">{paper.title}</h3>
                         <div className="flex text-sm text-gray-500 mt-1">
-                          <span>{paper.subject} • {paper.questions} Qs / {paper.marks} Marks • {paper.diff}</span>
+                          <span>{paper.subject} • {paper.questions} Qs / {paper.marks} Marks • Archived</span>
                         </div>
                       </div>
                     </div>
@@ -103,28 +158,28 @@ export default function QuestionPapersPage() {
             <div className="bg-white rounded-xl shadow-md border border-indigo-100 p-6 sticky top-24">
               <div className="flex items-center space-x-2 mb-6">
                 <Sparkles className="h-6 w-6 text-indigo-600" />
-                <h3 className="text-xl font-bold text-gray-900">Quick Generator</h3>
+                <h3 className="text-xl font-bold text-gray-900">AI Quick Generator</h3>
               </div>
               
               <div className="space-y-5">
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Upload Textbook Reference (Optional)</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 cursor-pointer">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <span className="text-xs text-gray-500">Upload Chapter PDF to extract topics</span>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Upload Textbook Reference Mode</label>
+                  <label className="border-2 border-dashed border-indigo-300 bg-indigo-50/50 rounded-lg p-6 text-center hover:bg-indigo-50 cursor-pointer flex flex-col items-center group transition">
+                    <input type="file" onChange={handleFileChange} accept=".txt,.pdf,.docx" className="hidden" />
+                    <Upload className="w-8 h-8 text-indigo-400 mb-2 group-hover:-translate-y-1 transition-transform" />
+                    <span className="text-sm font-semibold text-indigo-700">{file ? file.name : 'Click to Upload Chapter Source (.txt/.pdf)'}</span>
+                  </label>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Chapter or Topic Name</label>
-                  <input type="text" placeholder="e.g. Cell Structure" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject / Topic Focus</label>
+                  <input type="text" value={topic} onChange={e=>setTopic(e.target.value)} placeholder="e.g. History: French Revolution" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <select value={difficulty} onChange={e=>setDifficulty(e.target.value)} className="w-full border border-gray-300 text-sm font-medium rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
                       <option>Easy</option>
                       <option>Medium</option>
                       <option>Hard</option>
@@ -132,20 +187,20 @@ export default function QuestionPapersPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Question Type</label>
-                    <select className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                       <option>MCQ (1 Mark)</option>
-                       <option>Short (2 Marks)</option>
-                       <option>Long (5 Marks)</option>
+                    <select value={type} onChange={e=>setType(e.target.value)} className="w-full border border-gray-300 text-sm font-medium rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                       <option>MCQ</option>
+                       <option>Short Answers</option>
+                       <option>Long Descriptive</option>
                     </select>
                   </div>
                 </div>
 
                 <button 
                   onClick={handleGenerate}
-                  disabled={generating}
-                  className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 shadow-md transition-colors mt-4"
+                  disabled={generating || !topic.trim()}
+                  className="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 outline-none shadow-lg transition-all mt-4 flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {generating ? 'Quiz Agent Analyzing...' : 'Generate AI Question Paper'}
+                  {generating ? <Loader2 className="w-5 h-5 animate-spin"/> : 'Generate Smart Exam'}
                 </button>
               </div>
             </div>

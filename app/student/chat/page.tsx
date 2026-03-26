@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Navigation } from '@/components/navigation'
-import { Send, User, Bot, Paperclip, ChevronRight, Mic, Cpu } from 'lucide-react'
+import { Send, User, Bot, Paperclip, ChevronRight, Mic, Cpu, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default function ChatSystemPage() {
   const [messages, setMessages] = useState<{ role: 'user' | 'agent', content: any, agentUsed?: string }[]>([
@@ -97,7 +98,10 @@ export default function ChatSystemPage() {
       <Navigation />
       
       <main className="flex-1 max-w-5xl mx-auto p-4 w-full flex flex-col h-[calc(100vh-64px)]">
-        <div className="flex justify-between items-center mb-4 mt-6">
+        <Link href="/student/dashboard" className="inline-flex items-center text-gray-500 hover:text-indigo-600 mb-2 font-medium">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </Link>
+        <div className="flex justify-between items-center mb-4 mt-2">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center">
              <Cpu className="w-8 h-8 mr-3 text-indigo-600" /> Multi-Agent Chat Interface
           </h1>

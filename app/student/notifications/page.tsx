@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/navigation'
-import { Bell, BookOpen, AlertCircle, MessageSquare } from 'lucide-react'
+import { Bell, BookOpen, AlertCircle, MessageSquare, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default function NotificationsPage() {
   return (
@@ -7,6 +8,9 @@ export default function NotificationsPage() {
       <Navigation />
       
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <Link href="/student/dashboard" className="inline-flex items-center text-gray-500 hover:text-indigo-600 mb-6 font-medium">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </Link>
         <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center">
             <Bell className="w-8 h-8 mr-3 text-purple-600" /> Notifications

@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/navigation'
-import { Calendar, Target, Clock, BookOpen, CheckCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, BookOpen, ArrowLeft, Target, CheckCircle, Calendar } from 'lucide-react'
+import Link from 'next/link'
 
 export default function StudyPlanPage() {
   return (
@@ -7,7 +8,10 @@ export default function StudyPlanPage() {
       <Navigation />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="flex justify-between items-center mb-8">
+        <Link href="/student/dashboard" className="inline-flex items-center text-gray-500 hover:text-indigo-600 mb-6 font-medium">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </Link>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">"What should I study?"</h1>
             <p className="text-gray-500 mt-1">Your AI-generated daily learning plan based on the class timetable.</p>
