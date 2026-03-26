@@ -1,14 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini with the provided API token
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyCN1gdaNNtcFaigqCokYyf-X2VSmn5kqQE";
-const genAI = new GoogleGenerativeAI(apiKey);
+// Initialize Gemini with the provided API token securely
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  console.error("Critical: GEMINI_API_KEY is missing in environment variables");
+}
+
+const genAI = new GoogleGenerativeAI(apiKey || "");
 
 export const openai = {
   chat: {
     completions: {
       create: async ({ messages, response_format, model }: any) => {
         try {
+          if (!apiKey) {
+            throw new Error("GEMINI_API_KEY is missing in environment variables");
+          }
+
           // Detect if we need JSON parsing
           const isJson = response_format?.type === 'json_object';
           
@@ -22,6 +31,10 @@ export const openai = {
           
           const result = await generativeModel.generateContent(prompt);
           let responseText = result.response.text();
+
+          if (isJson) {
+            responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+          }
 
           // OpenAI expects a specific layout
           return {

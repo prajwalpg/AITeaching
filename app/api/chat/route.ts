@@ -31,8 +31,9 @@ export async function POST(req: Request) {
       }
     });
   } catch (error: any) {
+    console.error("FATAL ERROR IN API CHAT:", error);
     return NextResponse.json(
-      { agentUsed: "error", response: "Critical system error in Orchestrator.", additionalData: { error: error.message } },
+      { agentUsed: "error", response: "Critical system error in Orchestrator.", additionalData: { error: error.message, stack: error.stack } },
       { status: 500 }
     );
   }

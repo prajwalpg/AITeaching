@@ -27,19 +27,26 @@ Classify the user input into ONE of these agents:
 
 Return exactly ONE word from the above list.`;
 
-  const classification = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: input }
-    ],
-    temperature: 0,
-    max_tokens: 10,
-  });
-
-  const agentUsed = (classification.choices[0]?.message?.content?.toLowerCase().trim() || 'student') as AgentRole;
+  let agentUsed: AgentRole = 'student';
   let responseData: any = '';
   let additionalData: any = {};
+
+  try {
+    const classification = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: input }
+      ],
+      temperature: 0,
+      max_tokens: 10,
+    });
+
+    agentUsed = (classification.choices?.[0]?.message?.content?.toLowerCase().trim() || 'student') as AgentRole;
+  } catch (error: any) {
+    console.error("Orchestrator Classification Error:", error);
+    agentUsed = 'student'; // Fallback to student agent if classification fails
+  }
 
   try {
     switch (agentUsed) {

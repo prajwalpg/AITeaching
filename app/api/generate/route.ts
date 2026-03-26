@@ -1,24 +1,47 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { promises as fs } from 'fs';
+import fs from 'fs';
 
-// Initialize Gemini SDK with the user's provided token:
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyCN1gdaNNtcFaigqCokYyf-X2VSmn5kqQE";
-const genAI = new GoogleGenerativeAI(apiKey);
+// Initialize Gemini SDK securely via environment variable
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  console.error("Critical: GEMINI_API_KEY is missing in environment variables");
+}
+
+const genAI = new GoogleGenerativeAI(apiKey || "");
 
 export async function POST(req: Request) {
   try {
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is missing in environment variables");
+    }
+
     const { topic, difficulty, questionType, filepath } = await req.json();
+
+    console.log("Incoming request:", { topic, difficulty, questionType, filepath });
+
+    // Validate inputs
+    if (!topic || !difficulty || !questionType) {
+      return NextResponse.json({
+        success: false,
+        error: "Missing required fields"
+      }, { status: 400 });
+    }
 
     // 1. Content Analyzer Agent Logic: Extract text from uploaded file if provided
     let fileContext = '';
     if (filepath) {
+      if (!fs.existsSync(filepath)) {
+         return NextResponse.json({ success: false, error: "File not found" }, { status: 400 });
+      }
       try {
-        const fileContent = await fs.readFile(filepath, 'utf-8');
+        const fileContent = fs.readFileSync(filepath, 'utf-8');
         // Basic extraction fallback to first 5000 chars for context size safety
         fileContext = "Textbook Context Uploaded: " + fileContent.substring(0, 5000); 
       } catch (e) {
         console.error("Content Analyzer unable to read file path:", filepath);
+        return NextResponse.json({ success: false, error: "Unable to read uploaded file" }, { status: 500 });
       }
     }
 
@@ -51,7 +74,23 @@ Output ONLY valid JSON starting with { "questions": [...] }.`;
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    const jsonParsed = JSON.parse(responseText);
+    console.log("Gemini raw response:", responseText);
+
+    let cleaned = responseText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+
+    let jsonParsed;
+    try {
+      jsonParsed = JSON.parse(cleaned);
+    } catch (parseError: any) {
+      console.error("JSON parsing error:", parseError, "Cleaned Body:", cleaned);
+      return NextResponse.json({
+         success: false,
+         error: "AI failed to return valid JSON format."
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
