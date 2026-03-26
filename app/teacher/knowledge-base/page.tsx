@@ -7,6 +7,9 @@ export default function KnowledgeBasePage() {
       <Navigation />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <a href="/teacher/dashboard" className="inline-flex items-center text-gray-500 hover:text-indigo-600 mb-6 font-medium">
+          <BookOpen className="w-4 h-4 mr-2" /> Back to Dashboard
+        </a>
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Knowledge Base</h1>
@@ -106,8 +109,9 @@ export default function KnowledgeBasePage() {
                         <span className="text-xs text-gray-500">{item.conf}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                       <button className="text-blue-600 hover:text-blue-900 transition-colors">Edit</button>
+                      <button className="text-red-500 hover:text-red-700 transition-colors">Delete</button>
                     </td>
                   </tr>
                 ))}

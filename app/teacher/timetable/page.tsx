@@ -1,15 +1,29 @@
+'use client'
+
 import { Navigation } from '@/components/navigation'
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Plus, MapPin } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, Plus, MapPin, ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
+import Link from 'next/link'
 
 export default function TimetablePage() {
+  const [view, setView] = useState('week')
+  const [filling, setFilling] = useState(false)
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
   const hours = ['08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM']
+
+  const handleAutoFill = () => {
+     setFilling(true)
+     setTimeout(() => setFilling(false), 2000)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navigation />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <Link href="/teacher/dashboard" className="inline-flex items-center text-gray-500 hover:text-green-600 mb-6 font-medium">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </Link>
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -18,13 +32,17 @@ export default function TimetablePage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex bg-white shadow-sm border border-gray-200 rounded-lg p-1">
-              <button className="px-4 py-1.5 text-sm font-medium bg-green-50 text-green-700 rounded-md shadow-sm">Week</button>
-              <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-md">Month</button>
+              <button 
+                onClick={() => setView('week')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md shadow-sm transition-colors ${view === 'week' ? 'bg-green-50 text-green-700' : 'text-gray-600'}`}>Week</button>
+              <button 
+                onClick={() => setView('month')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md shadow-sm transition-colors ${view === 'month' ? 'bg-green-50 text-green-700' : 'text-gray-600'}`}>Month</button>
             </div>
             
-            <button className="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-all font-semibold flex items-center shadow-md">
-              <Plus className="w-4 h-4 mr-2" /> 
-              <span>Auto-Fill Schedule</span>
+            <button onClick={handleAutoFill} disabled={filling} className="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition-all font-semibold flex items-center shadow-md disabled:opacity-50">
+              <Plus className={`w-4 h-4 mr-2 ${filling ? 'animate-spin' : ''}`} /> 
+              <span>{filling ? 'Agent Distributing...' : 'Auto-Fill Schedule'}</span>
             </button>
           </div>
         </div>
@@ -35,7 +53,7 @@ export default function TimetablePage() {
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
-            <h2 className="text-xl font-bold text-gray-800">October 14 - October 18, 2026</h2>
+            <h2 className="text-xl font-bold text-gray-800">{view === 'week' ? 'October 14 - October 18, 2026' : 'October 2026'}</h2>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <ChevronRight className="w-5 h-5 text-gray-600" />
             </button>
@@ -43,8 +61,12 @@ export default function TimetablePage() {
           <button className="text-sm font-medium text-green-600 hover:text-green-800 transition-colors">Today</button>
         </div>
 
-        {/* Calendar Grid View */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[600px]">
+        {view === 'month' ? (
+           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-[600px] flex items-center justify-center text-gray-400 font-bold border-dashed border-4 p-12 text-center text-xl">
+               Month view actively synchronizing with Google Calendar and Microsoft Outlook for broader scheduling updates.
+           </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[600px]">
           <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50/80 sticky top-0 z-10 w-full">
             <div className="p-4 border-r border-gray-200 text-center flex items-center justify-center">
               <Clock className="w-5 h-5 text-gray-400" />
@@ -109,6 +131,7 @@ export default function TimetablePage() {
             </div>
           </div>
         </div>
+        )}
       </main>
     </div>
   )

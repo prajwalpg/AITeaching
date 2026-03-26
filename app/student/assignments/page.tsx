@@ -20,9 +20,9 @@ export default function AssignmentsPage() {
                 <p className="text-sm text-gray-500 mt-1">Due Today, 11:59 PM • History</p>
               </div>
             </div>
-            <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-xl shadow-md hover:bg-indigo-700 transition">
+            <a href="/student/chat" className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-xl shadow-md hover:bg-indigo-700 transition">
               Start Assignment
-            </button>
+            </a>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center group cursor-pointer hover:border-indigo-300 transition-colors border-l-4 border-l-yellow-500">

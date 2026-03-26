@@ -1,5 +1,6 @@
 import { Navigation } from '@/components/navigation'
-import { Users, Activity, Target, TrendingUp, Search, Download } from 'lucide-react'
+import { Users, Activity, Target, TrendingUp, Search, Download, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default function MonitoringPage() {
   return (
@@ -7,6 +8,9 @@ export default function MonitoringPage() {
       <Navigation />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <Link href="/teacher/dashboard" className="inline-flex items-center text-gray-500 hover:text-indigo-600 mb-6 font-medium">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </Link>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Student Monitoring</h1>
