@@ -36,10 +36,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center">
         <div className="text-center space-y-6 max-w-4xl">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
-            Teacher-Centric AI Learning,
+            Sahayak AI powered
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              Zero Hallucination
+              Teaching assistant
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">

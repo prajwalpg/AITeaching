@@ -51,10 +51,13 @@ Return exactly ONE word from the above list.`;
   try {
     switch (agentUsed) {
       case 'teacher':
-        responseData = await runTeacherAgent(input, context?.kb || '');
+        const teacherContext = await runRetrievalAgent(input);
+        responseData = await runTeacherAgent(input, teacherContext);
         break;
       case 'student':
-        responseData = await answerStudentDoubt(input, context?.kb || '');
+        // Real-time integration: Automatically fetch knowledge base context for every student doubt
+        const studentContext = await runRetrievalAgent(input, context?.subject);
+        responseData = await answerStudentDoubt(input, studentContext);
         break;
       case 'content':
         responseData = await generateContent(input, context?.curriculum || '', 'notes');
@@ -69,7 +72,7 @@ Return exactly ONE word from the above list.`;
         responseData = await runRecommendationAgent(context?.history || [], input, context?.score || 5);
         break;
       case 'retrieval':
-        responseData = await runRetrievalAgent(input);
+        responseData = await runRetrievalAgent(input, context?.subject);
         break;
       case 'code':
         responseData = await runCodeAgent({ code: context?.code || '', language: context?.lang || 'javascript', task: input });
@@ -78,7 +81,8 @@ Return exactly ONE word from the above list.`;
         responseData = await runAnalyticsAgent(userId);
         break;
       default:
-        responseData = await answerStudentDoubt(input, context?.kb || '');
+        const fallbackContext = await runRetrievalAgent(input);
+        responseData = await answerStudentDoubt(input, fallbackContext);
     }
 
     return {
@@ -88,11 +92,12 @@ Return exactly ONE word from the above list.`;
       message: typeof responseData === 'string' ? responseData : 'Operation successful'
     };
   } catch (error: any) {
+    console.error("AGENT RUNTIME ERROR:", error);
     return {
       success: false,
-      agentUsed,
-      data: null,
-      message: error.message || 'Agent logic failed'
+      agentUsed: agentUsed || 'student',
+      data: `System error in ${agentUsed || 'Agent'}: ${error.message || 'Wait a moment and try again.'}`,
+      message: error.message || 'Agent execution failed'
     };
   }
 }

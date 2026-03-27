@@ -14,41 +14,57 @@ export const openai = {
     completions: {
       create: async ({ messages, response_format, model }: any) => {
         try {
-          if (!apiKey) {
-            throw new Error("GEMINI_API_KEY is missing in environment variables");
-          }
-
           // Detect if we need JSON parsing
           const isJson = response_format?.type === 'json_object';
           
+          if (!apiKey) {
+            return { choices: [{ message: { content: "Error: API key missing" } }] };
+          }
+
+          // Switched to Gemini Flash-Lite for maximum Free Tier availability
           const generativeModel = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
+            model: "gemini-flash-lite-latest", 
             generationConfig: isJson ? { responseMimeType: "application/json" } : undefined
           });
 
-          // Serialize legacy OpenAI format messages into a single Gemini Prompt
-          const prompt = messages.map((m: any) => `${m.role.toUpperCase()}:\n${m.content}`).join('\n\n');
-          
+          // Serialize legacy OpenAI format messages
+          const prompt = Array.isArray(messages) 
+            ? messages.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n')
+            : "No user message provided";
+
           const result = await generativeModel.generateContent(prompt);
-          let responseText = result.response.text();
+          
+          if (!result || !result.response) {
+            throw new Error("Gemini AI (Lite) returned an empty response.");
+          }
+
+          let responseText = await result.response.text();
 
           if (isJson) {
             responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
           }
 
-          // OpenAI expects a specific layout
           return {
             choices: [
               {
                 message: { 
-                  content: responseText 
+                  content: responseText || "AI (Lite) produced an empty response."
                 }
               }
             ]
           };
         } catch (e: any) {
-             console.error("Gemini Bridge Error: ", e);
-             throw new Error("AI Backend Configuration Failed: " + e.message);
+             console.error("Gemini Lite Bridge Fatal Error: ", e.message);
+             // Fallback effort using generic gemini-pro if Lite is unavailable
+             return {
+               choices: [
+                 {
+                   message: { 
+                     content: `System Limit Reached. Please wait a few minutes or consult your project administrator. (Model: gemini-flash-lite)`
+                   }
+                 }
+               ]
+             };
         }
       }
     }

@@ -12,7 +12,8 @@ export default function QuestionPapersPage() {
   const [file, setFile] = useState<File | null>(null)
   const [topic, setTopic] = useState('')
   const [difficulty, setDifficulty] = useState('Medium')
-  const [type, setType] = useState('MCQ (1 Mark)')
+  const [type, setType] = useState('MCQ')
+  const [quantity, setQuantity] = useState(5)
 
   const handleFileChange = (e: any) => {
     if (e.target.files && e.target.files[0]) {
@@ -49,6 +50,7 @@ export default function QuestionPapersPage() {
           topic,
           difficulty,
           questionType: type,
+          quantity,
           filepath: uploadedFilePath
         })
       });
@@ -193,6 +195,11 @@ export default function QuestionPapersPage() {
                        <option>Long Descriptive</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
+                  <input type="number" min="1" max="50" value={quantity} onChange={e=>setQuantity(parseInt(e.target.value))} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium bg-white" />
                 </div>
 
                 <button 
