@@ -1,46 +1,5 @@
 ﻿# AITeaching
-# 🤖 AI Teaching & Interview System
-
-An advanced AI-powered platform designed to simulate real-time interviews, monitor candidate behavior, and provide intelligent feedback using computer vision and AI.
-
----
-
-## 🚀 Features
-
-### 🎤 AI Interview System
-- Automated interview questions generation
-- Domain-based questioning (based on resume / interest)
-- Real-time interaction with AI interviewer
-
-### 🧠 Face Detection & Proctoring
-- Face detection using webcam
-- Multi-face detection (detect cheating)
-- Head pose & gaze tracking
-- Detect suspicious movements (left/right/down)
-
-### 👀 Gaze Tracking
-- Tracks eye movement direction
-- Detects:
-  - Looking away
-  - Reading from external sources
-  - Repeated glance patterns
-
-### ⚠️ Violation Detection System
-- Logs violations such as:
-  - Multiple faces
-  - Looking away frequently
-  - No face detected
-- Generates warnings in real-time
-
-### 📄 Resume-Based Interview (Planned / Optional)
-- Upload resume (PDF)
-- AI extracts skills & generates questions
-
-### 🤖 Hardcoded + AI Bot Mode
-- Fallback bot if AI API fails
-- Ensures system always works
-
----
+# 🤖 AI Teaching
 
 ## 🛠️ Tech Stack
 
@@ -52,28 +11,11 @@ An advanced AI-powered platform designed to simulate real-time interviews, monit
 - Node.js
 - Express.js
 
-### AI & CV
-- Face Detection Models
-- MediaPipe / OpenCV (if used)
-- Custom gaze tracking logic
-
 ### Database
 - SQLite / Prisma
 
 ---
 
-## 📂 Project Structure
-AITeaching/
-│── frontend/
-│── backend/
-│── models/
-│── utils/
-│── core/
-│── public/
-│── README.md
-
-
----
 
 ## ⚙️ Installation
 
@@ -95,9 +37,3 @@ GEMINI_API_KEY="your_key"
 4️⃣ Run Project
 npm run dev
 
-🔧 Future Improvements
-✅ Resume parsing using AI
-✅ Voice-based interview system
-✅ Emotion detection
-✅ Advanced cheating detection
-✅ Dashboard analytics
